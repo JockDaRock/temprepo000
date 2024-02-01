@@ -1,0 +1,19 @@
+FROM quay.io/go-skynet/local-ai:latest
+
+ENV ROOT=/localai
+
+RUN apt update && apt install -y wget build-essential libvulkan1 libgl1 libglib2.0-0
+
+WORKDIR ${ROOT}
+
+RUN wget https://github.com/Juice-Labs/Juice-Labs/releases/latest/download/JuiceClient-linux.tar.gz
+
+WORKDIR ${ROOT}/JuiceClient
+
+RUN tar -xf ${ROOT}/JuiceClient-linux.tar.gz
+
+ENV JUICESERVER 127.0.0.1:43210
+
+WORKDIR ${ROOT}
+
+CMD ${ROOT}/JuiceClient/juicify --address ${JUICESERVER} /usr/bin/local-ai

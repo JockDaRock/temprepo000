@@ -1,0 +1,18 @@
+FROM goolashe/automatic1111-sd-webui:latest
+
+RUN apt install -y wget tar build-essential
+
+WORKDIR /usr/src
+
+RUN wget https://github.com/Juice-Labs/Juice-Labs/releases/latest/download/JuiceClient-linux.tar.gz
+
+WORKDIR /usr/src/JuiceClient
+
+RUN tar -xf ../JuiceClient-linux.tar.gz
+
+COPY juice.cfg /usr/src/JuiceClient/
+
+WORKDIR /stable-diffusion-webui
+
+CMD /usr/src/JuiceClient/juicify python -u /stable-diffusion-webui/webui.py --listen --port 7860 ${CLI_ARGS}
+

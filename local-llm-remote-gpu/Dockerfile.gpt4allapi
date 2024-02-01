@@ -1,0 +1,54 @@
+FROM alpine/git:2.36.2 as download
+
+WORKDIR /
+
+RUN git clone https://github.com/nomic-ai/gpt4all
+
+
+# FROM pytorch/pytorch:2.1.2-cuda11.8-cudnn8-runtime
+
+# FROM python:3.9
+
+FROM tiangolo/uvicorn-gunicorn:python3.11
+
+# ENV DEBIAN_FRONTEND=noninteractive PIP_PREFER_BINARY=1
+
+# RUN --mount=type=cache,target=/var/cache/apt \
+#   apt update && \
+#   # we need those
+#   apt install -y wget fonts-dejavu-core rsync git jq moreutils aria2 \
+#   # extensions needs those
+#   ffmpeg libglfw3-dev libgles2-mesa-dev pkg-config libcairo2 libcairo2-dev build-essential libvulkan1 libgl1 libglib2.0-0
+
+RUN apt update && apt install -y libvulkan1 libgl1 libglib2.0-0
+
+WORKDIR /
+
+ENV ROOT=/gpt4all_api
+
+COPY --from=download /gpt4all/gpt4all-api/gpt4all_api/ ${ROOT}/
+
+WORKDIR ${ROOT}
+
+RUN pip install -r requirements.txt && pip install gpt4all
+
+RUN apt install -y wget build-essential && apt --fix-broken install
+
+RUN wget https://github.com/Juice-Labs/Juice-Labs/releases/latest/download/JuiceClient-linux.tar.gz
+
+WORKDIR ${ROOT}/JuiceClient
+
+RUN tar -xf ${ROOT}/JuiceClient-linux.tar.gz
+
+# COPY juice.cfg /usr/src/JuiceClient/
+ENV JUICESERVER 127.0.0.1:43210
+
+# CMD [ "/usr/src/JuiceClient/juicify", "/usr/src/JuiceClient/app/webui.sh" ]
+WORKDIR ${ROOT}
+
+COPY main.py app/main.py
+
+CMD ${ROOT}/JuiceClient/juicify --address ${JUICESERVER} python app/main.py
+
+
+

@@ -1,0 +1,17 @@
+FROM python:3.10
+
+ENV MODEL='orca-mini-3b-gguf2-q4_0.gguf'
+
+WORKDIR /usr/src/app
+
+COPY requirements.txt .
+COPY chatty.py .
+
+RUN pip install -r requirements.txt
+
+COPY download_model.py .
+
+RUN python3 download_model.py
+
+CMD [ "python", "/usr/src/app/chatty.py" ]
+
